@@ -1,7 +1,11 @@
 import copy
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pymc3 as pm
+import seaborn as sns
+import ipywidgets
+
 
 class ConfusionMatrixAnalyser(object):
 
@@ -71,3 +75,14 @@ class ConfusionMatrixAnalyser(object):
 
     def calc_hpd(self, dataseries, alpha=0.05):
         return pm.stats.hpd(dataseries, alpha=alpha)
+
+    def plot_metric(self, metric):
+        sns.distplot(self.trace_metrics[metric], label='trace')
+        sns.distplot(self.pp_metrics[metric].dropna(), label='pp')
+        plt.axvline(self.calc_metrics(self.confusion_matrix.astype(float))[metric], c='k', label='sample')
+        plt.ylabel('Probability density')
+        plt.legend()
+
+    def interactive_metric_plot(self):
+        metric_slider = ipywidgets.Dropdown(options=self.metrics, description='metric', value='MCC')
+        ipywidgets.interact(self.plot_metric, metric=metric_slider)
