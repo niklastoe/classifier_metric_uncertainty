@@ -35,14 +35,27 @@ class ConfusionMatrixAnalyser(object):
             # use NUTS sampler
             trace = pm.sample(5000)
 
+        passed_gelman_rub = (pm.diagnostics.gelman_rubin(trace)['a'] < 1.01).all()
+        if not passed_gelman_rub:
+            raise ValueError('Model did not converge according to Gelman-Rubin diagnostics!!')
+
         self.model = multinom_test
         self.data_pred = data_pred
         self.trace = trace
         self.trace_samples = pd.DataFrame(trace.get_values('a'), columns=self.confusion_matrix.index)
 
     def posterior_predictions(self):
-        posterior_prediction = pm.sample_ppc(self.trace, samples=int(1e5), model=self.model)
-        self.pp_samples = pd.DataFrame(posterior_prediction['data_pred'], columns=self.confusion_matrix.index)
+        no_pp_samples = int(1e5)
+        posterior_prediction = pm.sample_ppc(self.trace, samples=no_pp_samples, model=self.model)['data_pred']
+        split_pp_samples = np.stack([posterior_prediction[:(no_pp_samples / 2)],
+                                     posterior_prediction[(no_pp_samples / 2):]])
+
+        passed_gelman_rubin = (pm.diagnostics.gelman_rubin(split_pp_samples) < 1.01).all()
+
+        if not passed_gelman_rubin:
+            raise ValueError('Not enough posterior predictive samples according to Gelman-Rubin diagnostics!!')
+
+        self.pp_samples = pd.DataFrame(posterior_prediction, columns=self.confusion_matrix.index)
 
     def calc_metrics(self, input_df):
         df = copy.deepcopy(input_df)
