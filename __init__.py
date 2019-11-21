@@ -59,3 +59,10 @@ class ConfusionMatrixAnalyser(object):
         df['MCC'] = MCC_upper / np.sqrt(MCC_lower)
 
         return df
+
+    def chance_to_be_random_process(self):
+        return 1 - (self.trace_metrics['MCC'] > 0).sum() / float(len(self.trace_metrics))
+
+    def chance_to_appear_random_process(self):
+        return 1 - (self.pp_metrics['MCC'] > 0).sum() / float(len(self.pp_metrics))
+
