@@ -69,3 +69,5 @@ class ConfusionMatrixAnalyser(object):
     def chance_to_appear_random_process(self):
         return 1 - (self.pp_metrics['MCC'] > 0).sum() / float(len(self.pp_metrics))
 
+    def calc_hpd(self, dataseries, alpha=0.05):
+        return pm.stats.hpd(dataseries, alpha=alpha)
