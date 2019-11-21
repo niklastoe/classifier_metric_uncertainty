@@ -16,6 +16,9 @@ class ConfusionMatrixAnalyser(object):
         self.trace_metrics = self.calc_metrics(self.trace_samples)
         self.pp_metrics = self.calc_metrics(self.pp_samples)
 
+        self.metrics = [x for x in self.trace_metrics.columns
+                        if x not in self.confusion_matrix.index]
+
     def evaluate_model(self):
 
         y = self.confusion_matrix.values
