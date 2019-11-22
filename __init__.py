@@ -45,7 +45,7 @@ class ConfusionMatrixAnalyser(object):
         self.trace_samples = pd.DataFrame(trace.get_values('a'), columns=self.confusion_matrix.index)
 
     def posterior_predictions(self):
-        no_pp_samples = int(1e5)
+        no_pp_samples = int(2e4)
         posterior_prediction = pm.sample_ppc(self.trace, samples=no_pp_samples, model=self.model)['data_pred']
         split_pp_samples = np.stack([posterior_prediction[:(no_pp_samples / 2)],
                                      posterior_prediction[(no_pp_samples / 2):]])
