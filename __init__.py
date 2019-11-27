@@ -69,14 +69,25 @@ class ConfusionMatrixAnalyser(object):
 
         df['sensitivity'] = df['TP'] / (df['TP'] + df['FN'])
         df['specificity'] = df['TN'] / (df['TN'] + df['FP'])
-        df['1-specificity'] = 1 - df['specificity']
-        df['ROC_approved'] = df['sensitivity'] > df['1-specificity']
         df['precision'] = df['TP'] / (df['TP'] + df['FP'])
         df['NPV'] = df['TN'] / (df['TN'] + df['FN'])
+
+        # for convenience, also add the other metrics
+        df['FNR'] = 1 - df['sensitivity']
+        df['FPR'] = 1 - df['specificity']
+        df['1-specificity'] = df['FPR']
+        df['FDR'] = 1 - df['precision']
+        df['FOR'] = 1 - df['NPV']
 
         MCC_upper = (df['TP'] * df['TN'] - df['FP'] * df['FN'])
         MCC_lower = (df['TP'] + df['FP']) * (df['TP'] + df['FN']) * (df['TN'] + df['FP']) * (df['TN'] + df['FN'])
         df['MCC'] = MCC_upper / np.sqrt(MCC_lower)
+
+        df['F1'] = 2 * (df['precision'] * df['sensitivity']) / (df['precision'] + df['sensitivity'])
+        df['informedness'] = df['sensitivity'] + df['specificity'] - 1
+        df['markedness'] = df['precision'] + df['NPV'] - 1
+
+        df['ROC_approved'] = df['sensitivity'] > df['1-specificity']
 
         return df
 
