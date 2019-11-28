@@ -17,45 +17,40 @@ class ConfusionMatrixAnalyser(object):
         print('Starting posterior prediction!')
         self.posterior_predictions()
 
-        self.trace_metrics = self.calc_metrics(self.trace_samples)
+        self.theta_metrics = self.calc_metrics(self.theta_samples)
         self.pp_metrics = self.calc_metrics(self.pp_samples)
 
-        self.metrics = [x for x in self.trace_metrics.columns
+        self.metrics = [x for x in self.theta_metrics.columns
                         if x not in self.confusion_matrix.index]
 
     def evaluate_model(self):
 
-        y = self.confusion_matrix.values
-        k = len(y)
-        n = sum(y)
+        dirichlet_alpha = 1 + self.confusion_matrix.values
+        dirichlet_alpha = dirichlet_alpha.astype(int)
 
-        with pm.Model() as multinom_test:
-            a = pm.Dirichlet('a', a=np.ones(k))
-            data_pred = pm.Multinomial('data_pred', n=n, p=a, observed=y)
-            # use NUTS sampler
-            trace = pm.sample(5000)
+        distribution_samples = int(2e4)
+        dirichlet_samples = np.random.dirichlet(dirichlet_alpha, size=distribution_samples)
 
-        passed_gelman_rub = (pm.diagnostics.gelman_rubin(trace)['a'] < 1.01).all()
-        if not passed_gelman_rub:
+        if not self.gelman_rubin_test_on_samples(dirichlet_samples):
             raise ValueError('Model did not converge according to Gelman-Rubin diagnostics!!')
 
-        self.model = multinom_test
-        self.data_pred = data_pred
-        self.trace = trace
-        self.trace_samples = pd.DataFrame(trace.get_values('a'), columns=self.confusion_matrix.index)
+        self.theta_samples = pd.DataFrame(dirichlet_samples, columns=self.confusion_matrix.index)
 
     def posterior_predictions(self):
-        no_pp_samples = int(2e4)
-        posterior_prediction = pm.sample_ppc(self.trace, samples=no_pp_samples, model=self.model)['data_pred']
-        split_pp_samples = np.stack([posterior_prediction[:(no_pp_samples / 2)],
-                                     posterior_prediction[(no_pp_samples / 2):]])
+        N = self.confusion_matrix.values.sum()
+        posterior_prediction = np.array([np.random.multinomial(N, x) for x in self.theta_samples.values])
 
-        passed_gelman_rubin = (pm.diagnostics.gelman_rubin(split_pp_samples) < 1.01).all()
-
-        if not passed_gelman_rubin:
+        if not self.gelman_rubin_test_on_samples(posterior_prediction):
             raise ValueError('Not enough posterior predictive samples according to Gelman-Rubin diagnostics!!')
 
         self.pp_samples = pd.DataFrame(posterior_prediction, columns=self.confusion_matrix.index)
+
+    def gelman_rubin_test_on_samples(self, samples):
+        no_samples = len(samples)
+        split_samples = np.stack([samples[:(no_samples / 2)],
+                                     samples[(no_samples / 2):]])
+        passed_gelman_rubin = (pm.diagnostics.gelman_rubin(split_samples) < 1.01).all()
+        return passed_gelman_rubin
 
     def calc_metrics(self, input_df):
         df = copy.deepcopy(input_df)
@@ -92,7 +87,7 @@ class ConfusionMatrixAnalyser(object):
         return df
 
     def chance_to_be_random_process(self):
-        return 1 - (self.trace_metrics['MCC'] > 0).sum() / float(len(self.trace_metrics))
+        return 1 - (self.theta_metrics['MCC'] > 0).sum() / float(len(self.theta_metrics))
 
     def chance_to_appear_random_process(self):
         return 1 - (self.pp_metrics['MCC'] > 0).sum() / float(len(self.pp_metrics))
@@ -102,7 +97,7 @@ class ConfusionMatrixAnalyser(object):
         return pm.stats.hpd(dataseries, alpha=alpha)
 
     def plot_metric(self, metric):
-        sns.distplot(self.trace_metrics[metric], label='trace')
+        sns.distplot(self.theta_metrics[metric], label=r'from $\theta$')
         sns.distplot(self.pp_metrics[metric].dropna(), label='pp')
         plt.axvline(self.calc_metrics(self.confusion_matrix.astype(float))[metric], c='k', label='sample')
         plt.ylabel('Probability density')
