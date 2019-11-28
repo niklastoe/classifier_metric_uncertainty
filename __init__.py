@@ -12,10 +12,8 @@ class ConfusionMatrixAnalyser(object):
     def __init__(self, confusion_matrix):
         self.confusion_matrix = confusion_matrix
 
-        print('Starting to evaluate model!')
-        self.evaluate_model()
-        print('Starting posterior prediction!')
-        self.posterior_predictions()
+        self.theta_samples = self.sample_theta()
+        self.pp_samples = self.posterior_predict_confusion_matrices()
 
         self.theta_metrics = self.calc_metrics(self.theta_samples)
         self.pp_metrics = self.calc_metrics(self.pp_samples)
@@ -23,7 +21,7 @@ class ConfusionMatrixAnalyser(object):
         self.metrics = [x for x in self.theta_metrics.columns
                         if x not in self.confusion_matrix.index]
 
-    def evaluate_model(self):
+    def sample_theta(self):
 
         dirichlet_alpha = 1 + self.confusion_matrix.values
         dirichlet_alpha = dirichlet_alpha.astype(int)
@@ -34,16 +32,16 @@ class ConfusionMatrixAnalyser(object):
         if not self.gelman_rubin_test_on_samples(dirichlet_samples):
             raise ValueError('Model did not converge according to Gelman-Rubin diagnostics!!')
 
-        self.theta_samples = pd.DataFrame(dirichlet_samples, columns=self.confusion_matrix.index)
+        return pd.DataFrame(dirichlet_samples, columns=self.confusion_matrix.index)
 
-    def posterior_predictions(self):
+    def posterior_predict_confusion_matrices(self):
         N = self.confusion_matrix.values.sum()
         posterior_prediction = np.array([np.random.multinomial(N, x) for x in self.theta_samples.values])
 
         if not self.gelman_rubin_test_on_samples(posterior_prediction):
             raise ValueError('Not enough posterior predictive samples according to Gelman-Rubin diagnostics!!')
 
-        self.pp_samples = pd.DataFrame(posterior_prediction, columns=self.confusion_matrix.index)
+        return pd.DataFrame(posterior_prediction, columns=self.confusion_matrix.index)
 
     def gelman_rubin_test_on_samples(self, samples):
         no_samples = len(samples)
