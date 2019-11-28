@@ -15,6 +15,7 @@ class ConfusionMatrixAnalyser(object):
         self.theta_samples = self.sample_theta()
         self.pp_samples = self.posterior_predict_confusion_matrices()
 
+        self.cm_metrics = self.calc_metrics(self.confusion_matrix.astype(float))
         self.theta_metrics = self.calc_metrics(self.theta_samples)
         self.pp_metrics = self.calc_metrics(self.pp_samples)
 
