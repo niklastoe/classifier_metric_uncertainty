@@ -119,3 +119,9 @@ class ConfusionMatrixAnalyser(object):
     def interactive_metric_plot(self):
         metric_slider = ipywidgets.Dropdown(options=self.metrics, description='metric', value='MCC')
         ipywidgets.interact(self.plot_metric, metric=metric_slider)
+
+    def integrate_metric(self, metric, lower_boundary, upper_boundary):
+        integral = ((self.theta_metrics[metric] > lower_boundary) & (self.theta_metrics[metric] < upper_boundary)).sum()
+        integral = integral / float(len(self.theta_metrics))
+
+        return integral
