@@ -46,8 +46,8 @@ class ConfusionMatrixAnalyser(object):
 
     def gelman_rubin_test_on_samples(self, samples):
         no_samples = len(samples)
-        split_samples = np.stack([samples[:(no_samples / 2)],
-                                     samples[(no_samples / 2):]])
+        split_samples = np.stack([samples[:int(no_samples / 2)],
+                                  samples[int(no_samples / 2):]])
         passed_gelman_rubin = (pm.diagnostics.gelman_rubin(split_samples) < 1.01).all()
         return passed_gelman_rubin
 
