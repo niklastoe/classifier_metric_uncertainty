@@ -95,12 +95,26 @@ class ConfusionMatrixAnalyser(object):
     def calc_hpd(dataseries, alpha=0.05):
         return pm.stats.hpd(dataseries, alpha=alpha)
 
-    def plot_metric(self, metric):
-        sns.distplot(self.theta_metrics[metric], label=r'from $\theta$')
-        sns.distplot(self.pp_metrics[metric].dropna(), label='pp')
-        plt.axvline(self.calc_metrics(self.confusion_matrix.astype(float))[metric], c='k', label='sample')
+    def plot_metric(self,
+                    metric,
+                    show_theta_metric=True,
+                    show_pp_metric=False,
+                    show_sample_metric=True):
+        if show_theta_metric:
+            sns.distplot(self.theta_metrics[metric], label=r'from $\theta$', kde=False, bins=100)
+        if show_pp_metric:
+            sns.distplot(self.pp_metrics[metric].dropna(), label='pp', kde=False, bins=100)
+        if show_sample_metric:
+            plt.axvline(self.calc_metrics(self.confusion_matrix.astype(float))[metric], c='k', label='sample')
         plt.ylabel('Probability density')
-        plt.legend()
+        plt.yticks([])
+        plt.legend(loc='upper left', bbox_to_anchor=(1., 1.))
+
+        # ensure that x- and y-lim are always appropriate
+        if metric in ['MCC', 'markdness', 'informedness']:
+            plt.xlim(-1.05, 1.05)
+        else:
+            plt.xlim(-0.05, 1.05)
 
     def interactive_metric_plot(self):
         metric_slider = ipywidgets.Dropdown(options=self.metrics, description='metric', value='MCC')
