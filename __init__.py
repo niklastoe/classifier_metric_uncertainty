@@ -44,14 +44,16 @@ class ConfusionMatrixAnalyser(object):
 
         return pd.DataFrame(posterior_prediction, columns=self.confusion_matrix.index)
 
-    def gelman_rubin_test_on_samples(self, samples):
+    @staticmethod
+    def gelman_rubin_test_on_samples(samples):
         no_samples = len(samples)
         split_samples = np.stack([samples[:int(no_samples / 2)],
                                   samples[int(no_samples / 2):]])
         passed_gelman_rubin = (pm.diagnostics.gelman_rubin(split_samples) < 1.01).all()
         return passed_gelman_rubin
 
-    def calc_metrics(self, input_df):
+    @staticmethod
+    def calc_metrics(input_df):
         df = copy.deepcopy(input_df)
 
         n = df['TP'] + df['FN'] + df['TN'] + df['FP']
