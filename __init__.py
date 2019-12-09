@@ -35,8 +35,11 @@ class ConfusionMatrixAnalyser(object):
 
         return pd.DataFrame(dirichlet_samples, columns=self.confusion_matrix.index)
 
-    def posterior_predict_confusion_matrices(self):
-        N = self.confusion_matrix.values.sum()
+    def posterior_predict_confusion_matrices(self, N=None):
+
+        if N is None:
+            N = self.confusion_matrix.values.sum()
+
         posterior_prediction = np.array([np.random.multinomial(N, x) for x in self.theta_samples.values])
 
         if not self.gelman_rubin_test_on_samples(posterior_prediction):
