@@ -86,8 +86,6 @@ class ConfusionMatrixAnalyser(object):
         df['informedness'] = df['sensitivity'] + df['specificity'] - 1
         df['markedness'] = df['precision'] + df['NPV'] - 1
 
-        df['ROC_approved'] = df['sensitivity'] > df['1-specificity']
-
         return df
 
     def chance_to_be_random_process(self):
