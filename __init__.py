@@ -1,9 +1,9 @@
-import copy
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pymc3 as pm
 import seaborn as sns
+import sympy
 import ipywidgets
 
 
@@ -11,6 +11,7 @@ class ConfusionMatrixAnalyser(object):
 
     def __init__(self, confusion_matrix):
         self.confusion_matrix = confusion_matrix
+        self.metrics = get_metric_dictionary()
 
         self.theta_samples = self.sample_theta()
         self.pp_samples = self.posterior_predict_confusion_matrices()
@@ -18,9 +19,6 @@ class ConfusionMatrixAnalyser(object):
         self.cm_metrics = self.calc_metrics(self.confusion_matrix.astype(float))
         self.theta_metrics = self.calc_metrics(self.theta_samples)
         self.pp_metrics = self.calc_metrics(self.pp_samples)
-
-        self.metrics = [x for x in self.theta_metrics.columns
-                        if x not in self.confusion_matrix.index]
 
     def sample_theta(self):
 
@@ -55,38 +53,21 @@ class ConfusionMatrixAnalyser(object):
         passed_gelman_rubin = (pm.diagnostics.gelman_rubin(split_samples) < 1.01).all()
         return passed_gelman_rubin
 
-    @staticmethod
-    def calc_metrics(input_df):
-        df = copy.deepcopy(input_df)
+    def calc_metrics(self, samples):
+        metrics_numpy_functions = self.metrics['numpy']
 
-        n = df['TP'] + df['FN'] + df['TN'] + df['FP']
-        if type(input_df) == pd.Series:
-            n = float(n)
+        # pass samples to lambdified functions of metrics
+        # important to keep the order of samples consistent with definition: TP, FN, TN, FP
+        metrics_dict = {x: metrics_numpy_functions[x](samples['TP'], samples['FN'], samples['TN'], samples['FP'])
+                        for x in metrics_numpy_functions.index}
 
-        df['prevalence'] = (df['TP'] + df['FN']) / n
-        df['accuracy'] = (df['TP'] + df['TN']) / n
+        # store in pandas for usability
+        if type(samples) == pd.DataFrame:
+            metrics = pd.DataFrame(metrics_dict)
+        else:
+            metrics = pd.Series(metrics_dict)
 
-        df['sensitivity'] = df['TP'] / (df['TP'] + df['FN'])
-        df['specificity'] = df['TN'] / (df['TN'] + df['FP'])
-        df['precision'] = df['TP'] / (df['TP'] + df['FP'])
-        df['NPV'] = df['TN'] / (df['TN'] + df['FN'])
-
-        # for convenience, also add the other metrics
-        df['FNR'] = 1 - df['sensitivity']
-        df['FPR'] = 1 - df['specificity']
-        df['1-specificity'] = df['FPR']
-        df['FDR'] = 1 - df['precision']
-        df['FOR'] = 1 - df['NPV']
-
-        MCC_upper = (df['TP'] * df['TN'] - df['FP'] * df['FN'])
-        MCC_lower = (df['TP'] + df['FP']) * (df['TP'] + df['FN']) * (df['TN'] + df['FP']) * (df['TN'] + df['FN'])
-        df['MCC'] = MCC_upper / np.sqrt(MCC_lower)
-
-        df['F1'] = 2 * (df['precision'] * df['sensitivity']) / (df['precision'] + df['sensitivity'])
-        df['informedness'] = df['sensitivity'] + df['specificity'] - 1
-        df['markedness'] = df['precision'] + df['NPV'] - 1
-
-        return df
+        return metrics
 
     def chance_to_be_random_process(self):
         return 1 - (self.theta_metrics['MCC'] > 0).sum() / float(len(self.theta_metrics))
@@ -120,7 +101,7 @@ class ConfusionMatrixAnalyser(object):
             plt.xlim(-0.05, 1.05)
 
     def interactive_metric_plot(self):
-        metric_slider = ipywidgets.Dropdown(options=self.metrics, description='metric', value='MCC')
+        metric_slider = ipywidgets.Dropdown(options=self.metrics.index, description='metric', value='MCC')
         ipywidgets.interact(self.plot_metric, metric=metric_slider)
 
     def integrate_metric(self, metric, lower_boundary, upper_boundary):
@@ -128,3 +109,37 @@ class ConfusionMatrixAnalyser(object):
         integral = integral / float(len(self.theta_metrics))
 
         return integral
+
+
+def get_metric_dictionary():
+    tp, fn, tn, fp = sympy.symbols('TP FN TN FP')
+    n = tp + fn + tn + fp
+
+    metrics = {}
+
+    metrics['PREVALENCE'] = (tp + fn) / n
+
+    metrics['TPR'] = tpr = tp / (tp + fn)
+    metrics['TNR'] = tnr = tn / (tn + fp)
+    metrics['PPV'] = ppv = tp / (tp + fp)
+    metrics['NPV'] = npv = tn / (tn + fn)
+    metrics['FNR'] = 1 - tpr
+    metrics['FPR'] = 1 - tnr
+    metrics['FDR'] = 1 - ppv
+    metrics['FOR'] = 1 - npv
+
+    metrics['ACC'] = (tp + tn) / n
+
+    MCC_upper = (tp * tn - fp * fn)
+    MCC_lower = (tp + fp) * (tp + fn) * (tn + fp) * (tn + fn)
+    metrics['MCC'] = MCC_upper / sympy.sqrt(MCC_lower)
+
+    metrics['F1'] = 2 * (ppv * tpr) / (ppv + tpr)
+    metrics['BM'] = tpr + tnr - 1
+    metrics['MK'] = ppv + npv -1
+
+    numpy_metrics = {x: sympy.lambdify((tp, fn, tn, fp), metrics[x], "numpy") for x in metrics}
+
+    metrics_df = pd.DataFrame({'symbolic': metrics, 'numpy': numpy_metrics})
+
+    return metrics_df
