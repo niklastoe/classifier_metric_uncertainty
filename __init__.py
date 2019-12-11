@@ -154,10 +154,10 @@ def get_metric_dictionary():
 
 def calculate_prior(metric1, val1, metric2, val2, metric3, val3, weight):
     sym_met = get_metric_dictionary()['symbolic']
-    equation_symste = [n - weight, sym_met[metric1] - val1, sym_met[metric2] - val2, sym_met[metric3] - val3]
+    equation_system = [n - weight, sym_met[metric1] - val1, sym_met[metric2] - val2, sym_met[metric3] - val3]
 
     # use sympy to solve for cm_entries (which corresponds to the prior)
-    cm_entries_values = sympy.nonlinsolve(equation_symste, cm_elements)
+    cm_entries_values = sympy.nonlinsolve(equation_system, cm_elements)
 
     # indeces must be clear, properly format as pd.Series
     prior = pd.Series(cm_entries_values.args[0], index=symbol_order)
