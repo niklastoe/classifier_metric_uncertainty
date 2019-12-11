@@ -162,3 +162,37 @@ def calculate_prior(metric1, val1, metric2, val2, metric3, val3, weight):
     # indeces must be clear, properly format as pd.Series
     prior = pd.Series(cm_entries_values.args[0], index=symbol_order)
     return prior
+
+
+class Prior(object):
+
+    def __init__(self):
+        self.metrics = get_metric_dictionary()
+
+    def visualize_prior(self, metric1, val1, metric2, val2, metric3, val3, weight):
+        curr_prior = calculate_prior(metric1, val1, metric2, val2, metric3, val3, weight)
+
+        analyser = ConfusionMatrixAnalyser(curr_prior, prior=improper_prior)
+
+        print(curr_prior)
+        analyser.plot_metric(metric1, show_sample_metric=False)
+
+    def interactive_prior_visualization(self):
+        metric_slider1 = ipywidgets.Dropdown(options=self.metrics.index, description='metric1', value='ACC')
+        metric_slider2 = ipywidgets.Dropdown(options=self.metrics.index, description='metric2', value='TPR')
+        metric_slider3 = ipywidgets.Dropdown(options=self.metrics.index, description='metric3', value='PPV')
+
+        val_slider1 = ipywidgets.FloatSlider(value=0.5, min=-1., max=1., step=0.1)
+        val_slider2 = ipywidgets.FloatSlider(value=0.5, min=-1., max=1., step=0.1)
+        val_slider3 = ipywidgets.FloatSlider(value=0.5, min=-1., max=1., step=0.1)
+
+        weight_slider = ipywidgets.FloatSlider(value=10, min=1., max=100., step=1)
+
+        ipywidgets.interact(self.visualize_prior,
+                            metric1=metric_slider1,
+                            metric2=metric_slider2,
+                            metric3=metric_slider3,
+                            val1=val_slider1,
+                            val2=val_slider2,
+                            val3=val_slider3,
+                            weight=weight_slider)
