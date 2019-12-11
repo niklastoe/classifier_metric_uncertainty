@@ -12,11 +12,16 @@ symbol_order = 'TP FN TN FP'.split()
 tp, fn, tn, fp = cm_elements = sympy.symbols(symbol_order)
 n = sum(cm_elements)
 
+# priors
+max_entropy_prior = pd.Series([1] * len(symbol_order), index=symbol_order)
+improper_prior = pd.Series([0] * len(symbol_order), index=symbol_order)
+
 
 class ConfusionMatrixAnalyser(object):
 
-    def __init__(self, confusion_matrix):
+    def __init__(self, confusion_matrix, prior=max_entropy_prior):
         self.confusion_matrix = confusion_matrix
+        self.prior = prior
         self.metrics = get_metric_dictionary()
 
         self.theta_samples = self.sample_theta()
@@ -28,8 +33,7 @@ class ConfusionMatrixAnalyser(object):
 
     def sample_theta(self):
 
-        dirichlet_alpha = 1 + self.confusion_matrix.values
-        dirichlet_alpha = dirichlet_alpha.astype(int)
+        dirichlet_alpha = (self.prior + self.confusion_matrix)[self.confusion_matrix.index].values.astype(float)
 
         distribution_samples = int(2e4)
         dirichlet_samples = np.random.dirichlet(dirichlet_alpha, size=distribution_samples)
