@@ -7,6 +7,12 @@ import sympy
 import ipywidgets
 
 
+# sympy symbol definition for confusion matrix (CM) entries
+symbol_order = 'TP FN TN FP'.split()
+tp, fn, tn, fp = cm_elements = sympy.symbols(symbol_order)
+n = sum(cm_elements)
+
+
 class ConfusionMatrixAnalyser(object):
 
     def __init__(self, confusion_matrix):
@@ -58,7 +64,7 @@ class ConfusionMatrixAnalyser(object):
 
         # pass samples to lambdified functions of metrics
         # important to keep the order of samples consistent with definition: TP, FN, TN, FP
-        metrics_dict = {x: metrics_numpy_functions[x](samples['TP'], samples['FN'], samples['TN'], samples['FP'])
+        metrics_dict = {x: metrics_numpy_functions[x](*samples[symbol_order].values.T)
                         for x in metrics_numpy_functions.index}
 
         # store in pandas for usability
@@ -112,9 +118,6 @@ class ConfusionMatrixAnalyser(object):
 
 
 def get_metric_dictionary():
-    tp, fn, tn, fp = sympy.symbols('TP FN TN FP')
-    n = tp + fn + tn + fp
-
     metrics = {}
 
     metrics['PREVALENCE'] = (tp + fn) / n
@@ -136,9 +139,9 @@ def get_metric_dictionary():
 
     metrics['F1'] = 2 * (ppv * tpr) / (ppv + tpr)
     metrics['BM'] = tpr + tnr - 1
-    metrics['MK'] = ppv + npv -1
+    metrics['MK'] = ppv + npv - 1
 
-    numpy_metrics = {x: sympy.lambdify((tp, fn, tn, fp), metrics[x], "numpy") for x in metrics}
+    numpy_metrics = {x: sympy.lambdify(cm_elements, metrics[x], "numpy") for x in metrics}
 
     metrics_df = pd.DataFrame({'symbolic': metrics, 'numpy': numpy_metrics})
 
