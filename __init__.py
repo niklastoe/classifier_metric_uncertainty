@@ -109,10 +109,10 @@ class ConfusionMatrixAnalyser(object):
         plt.legend(loc='upper left', bbox_to_anchor=(1., 1.))
 
         # ensure that x- and y-lim are always appropriate
-        if metric in ['MCC', 'markdness', 'informedness']:
-            plt.xlim(-1.05, 1.05)
+        if metric in ['MCC', 'MK', 'BM']:
+            sel_ax.set_xlim(-1.05, 1.05)
         else:
-            plt.xlim(-0.05, 1.05)
+            sel_ax.set_xlim(-0.05, 1.05)
 
     def interactive_metric_plot(self):
         metric_slider = ipywidgets.Dropdown(options=self.metrics.index, description='metric', value='MCC')
