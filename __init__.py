@@ -192,7 +192,8 @@ class Prior(object):
     def __init__(self):
         self.metrics = get_metric_dictionary()
 
-    def visualize_prior(self, metric1, val1, metric2, val2, metric3, val3, weight):
+    @staticmethod
+    def visualize_prior(metric1, val1, metric2, val2, metric3, val3, weight):
         curr_prior = calculate_prior(metric1, val1, metric2, val2, metric3, val3, weight)
 
         analyser = ConfusionMatrixAnalyser(curr_prior, prior=improper_prior)
