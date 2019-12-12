@@ -199,7 +199,13 @@ class Prior(object):
         analyser = ConfusionMatrixAnalyser(curr_prior, prior=improper_prior)
 
         print(curr_prior)
-        analyser.plot_metric(metric1, show_sample_metric=False)
+        fig, axes = plt.subplots(ncols=3, sharey=True)
+
+        for idx, metric in enumerate([metric1, metric2, metric3]):
+            analyser.plot_metric(metric, show_sample_metric=False, sel_ax=axes[idx])
+            if idx > 0:
+                axes[idx].set_ylabel('')
+
 
     def interactive_prior_visualization(self):
         metric_slider1 = ipywidgets.Dropdown(options=self.metrics.index, description='metric1', value='ACC')
