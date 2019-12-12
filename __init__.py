@@ -120,6 +120,23 @@ class ConfusionMatrixAnalyser(object):
         # interact will try to make sel_ax a slider, that's not possible: fix it
         ipywidgets.interact(self.plot_metric, metric=metric_slider, sel_ax=ipywidgets.fixed(None))
 
+    def plot_all_metrics(self, show_theta_metric=True, show_pp_metric=False, show_sample_metric=True):
+        fig, axes = plt.subplots(nrows=5, ncols=3, figsize=(10, 10))
+
+        for idx, metric in enumerate(self.metrics.index):
+            curr_row = idx / 5
+            curr_col = idx % 5
+            curr_ax = axes[curr_col, curr_row]
+            self.plot_metric(metric,
+                             show_theta_metric=show_theta_metric,
+                             show_pp_metric=show_pp_metric,
+                             show_sample_metric=show_sample_metric,
+                             sel_ax=curr_ax)
+            curr_ax.set_yticks([])
+
+        axes[2, 0].set_ylabel('Probability density')
+        plt.subplots_adjust(hspace=0.5)
+
     def integrate_metric(self, metric, lower_boundary, upper_boundary):
         integral = ((self.theta_metrics[metric] > lower_boundary) & (self.theta_metrics[metric] < upper_boundary)).sum()
         integral = integral / float(len(self.theta_metrics))
