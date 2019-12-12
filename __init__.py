@@ -93,13 +93,17 @@ class ConfusionMatrixAnalyser(object):
                     metric,
                     show_theta_metric=True,
                     show_pp_metric=False,
-                    show_sample_metric=True):
+                    show_sample_metric=True,
+                    sel_ax=None):
+
+        sel_ax = sel_ax or plt.gca()
+
         if show_theta_metric:
-            sns.distplot(self.theta_metrics[metric], label=r'from $\theta$', kde=False, bins=100)
+            sns.distplot(self.theta_metrics[metric], label=r'from $\theta$', kde=False, bins=100, ax=sel_ax)
         if show_pp_metric:
-            sns.distplot(self.pp_metrics[metric].dropna(), label='pp', kde=False, bins=100)
+            sns.distplot(self.pp_metrics[metric].dropna(), label='pp', kde=False, bins=100, ax=sel_ax)
         if show_sample_metric:
-            plt.axvline(self.calc_metrics(self.confusion_matrix.astype(float))[metric], c='k', label='sample')
+            sel_ax.axvline(self.calc_metrics(self.confusion_matrix.astype(float))[metric], c='k', label='sample')
         plt.ylabel('Probability density')
         plt.yticks([])
         plt.legend(loc='upper left', bbox_to_anchor=(1., 1.))
@@ -112,7 +116,9 @@ class ConfusionMatrixAnalyser(object):
 
     def interactive_metric_plot(self):
         metric_slider = ipywidgets.Dropdown(options=self.metrics.index, description='metric', value='MCC')
-        ipywidgets.interact(self.plot_metric, metric=metric_slider)
+
+        # interact will try to make sel_ax a slider, that's not possible: fix it
+        ipywidgets.interact(self.plot_metric, metric=metric_slider, sel_ax=ipywidgets.fixed(None))
 
     def integrate_metric(self, metric, lower_boundary, upper_boundary):
         integral = ((self.theta_metrics[metric] > lower_boundary) & (self.theta_metrics[metric] < upper_boundary)).sum()
