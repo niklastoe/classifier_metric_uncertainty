@@ -104,8 +104,8 @@ class ConfusionMatrixAnalyser(object):
             sns.distplot(self.pp_metrics[metric].dropna(), label='pp', kde=False, bins=100, ax=sel_ax)
         if show_sample_metric:
             sel_ax.axvline(self.calc_metrics(self.confusion_matrix.astype(float))[metric], c='k', label='sample')
-        plt.ylabel('Probability density')
-        plt.yticks([])
+        sel_ax.set_ylabel('Probability density')
+        sel_ax.set_yticks([])
         plt.legend(loc='upper left', bbox_to_anchor=(1., 1.))
 
         # ensure that x- and y-lim are always appropriate
