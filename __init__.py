@@ -148,6 +148,7 @@ def get_metric_dictionary():
     metrics = {}
 
     metrics['PREVALENCE'] = (tp + fn) / n
+    metrics['PREDICTIONPREVALENCE'] = (tp + fp) / n
 
     metrics['TPR'] = tpr = tp / (tp + fn)
     metrics['TNR'] = tnr = tn / (tn + fp)
