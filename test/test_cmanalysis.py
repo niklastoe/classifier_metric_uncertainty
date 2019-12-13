@@ -1,7 +1,7 @@
 import pandas as pd
 import unittest as ut
 
-from workflows.bayesian_interpretation_confusion_matrix import ConfusionMatrixAnalyser, improper_prior
+from workflows.bayesian_interpretation_confusion_matrix import ConfusionMatrixAnalyser, haldane_prior
 
 
 class TestConfusionMatrixAnalyser(ut.TestCase):
@@ -10,7 +10,7 @@ class TestConfusionMatrixAnalyser(ut.TestCase):
         super(TestConfusionMatrixAnalyser, self).__init__(*args, **kwargs)
         input_cm = pd.Series([9, 1, 3, 2], index=['TP', 'FN', 'TN', 'FP'])
         # use improper prior to avoid bias / simplifies calculation
-        self.analyser = ConfusionMatrixAnalyser(input_cm, prior=improper_prior)
+        self.analyser = ConfusionMatrixAnalyser(input_cm, prior=haldane_prior)
 
         sel_n = 100000
         inf_n_pp = self.analyser.posterior_predict_confusion_matrices(N=sel_n)

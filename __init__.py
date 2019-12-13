@@ -12,14 +12,27 @@ symbol_order = 'TP FN TN FP'.split()
 tp, fn, tn, fp = cm_elements = sympy.symbols(symbol_order)
 n = sum(cm_elements)
 
-# priors
-max_entropy_prior = pd.Series([1] * len(symbol_order), index=symbol_order)
-improper_prior = pd.Series([0] * len(symbol_order), index=symbol_order)
+
+# priors (naming conventions from Alvares2018)
+def objective_prior(val):
+    return pd.Series([val] * len(symbol_order), index=symbol_order)
+
+bayes_laplace_prior = objective_prior(1)
+haldane_prior = objective_prior(0)
+jeffreys_prior = objective_prior(0.5)
+rda_prior = objective_prior(1. / len(symbol_order))
+ha_prior = objective_prior(np.sqrt(2) / len(symbol_order))
+
+dcm_priors = {'Bayes-Laplace': bayes_laplace_prior,
+              'Haldane': haldane_prior,
+              'Jeffreys': jeffreys_prior,
+              'RDA': rda_prior,
+              'HA': ha_prior}
 
 
 class ConfusionMatrixAnalyser(object):
 
-    def __init__(self, confusion_matrix, prior=max_entropy_prior):
+    def __init__(self, confusion_matrix, prior=bayes_laplace_prior):
         self.confusion_matrix = confusion_matrix
         self.prior = prior
         self.metrics = get_metric_dictionary()
@@ -197,7 +210,7 @@ class Prior(object):
     def visualize_prior(metric1, val1, metric2, val2, metric3, val3, weight):
         curr_prior = calculate_prior(metric1, val1, metric2, val2, metric3, val3, weight)
 
-        analyser = ConfusionMatrixAnalyser(curr_prior, prior=improper_prior)
+        analyser = ConfusionMatrixAnalyser(curr_prior, prior=haldane_prior)
 
         print(curr_prior)
         fig, axes = plt.subplots(ncols=3, sharey=True)
