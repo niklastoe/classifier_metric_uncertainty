@@ -1,7 +1,9 @@
 import pandas as pd
 import unittest as ut
+import pymc3 as pm
 
-from workflows.bayesian_interpretation_confusion_matrix import ConfusionMatrixAnalyser, haldane_prior
+from workflows.bayesian_interpretation_confusion_matrix import ConfusionMatrixAnalyser, \
+    haldane_prior, bayes_laplace_prior
 
 
 class TestConfusionMatrixAnalyser(ut.TestCase):
@@ -76,6 +78,37 @@ class TestConfusionMatrixAnalyser(ut.TestCase):
         self.assertEqual(self.analyser.cm_metrics['ACC'], 12./15.)
         self.assertEqual(self.analyser.cm_metrics['PREVALENCE'], 10./15.)
         self.assertEqual(self.analyser.cm_metrics['TPR'], 9./10.)
+
+    @ut.skip("pyMC test is disabled because it takes 15-90 seconds")
+    def test_pymc_implementation(self):
+        """my analytical implementation and pyMC should yield the same results.
+        Test expected value and variance for theta"""
+
+        # need to use Bayes-Laplace prior: pyMC cannot deal with Haldane prior
+        analyser_bl = ConfusionMatrixAnalyser(self.analyser.confusion_matrix,
+                                              prior=bayes_laplace_prior)
+
+        # inference with pyMC
+        with pm.Model() as multinom_test:
+            a = pm.Dirichlet('a', a=bayes_laplace_prior.astype(float).values)
+            data_pred = pm.Multinomial('data_pred',
+                                       n=self.N,
+                                       p=a,
+                                       observed=self.analyser.confusion_matrix)
+            trace = pm.sample(5000)
+
+        # get pymc samples
+        pymc_trace_samples = pd.DataFrame(trace.get_values('a'),
+                                          columns=self.analyser.confusion_matrix.index)
+
+        # compare expected value and variance
+        for i in self.analyser.theta_samples:
+            self.assertAlmostEqual(pymc_trace_samples[i].mean(),
+                                   analyser_bl.theta_samples[i].mean(),
+                                   delta=1e-2)
+            self.assertAlmostEqual(pymc_trace_samples[i].var(),
+                                   analyser_bl.theta_samples[i].var(),
+                                   delta=1e-3)
 
 
 if __name__ == '__main__':
