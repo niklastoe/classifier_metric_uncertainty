@@ -12,6 +12,7 @@ symbol_order = 'TP FN TN FP'.split()
 tp, fn, tn, fp = cm_elements = sympy.symbols(symbol_order)
 n = sum(cm_elements)
 
+default_rope = 0.05
 
 # priors (naming conventions from Alvares2018)
 def objective_prior(val):
@@ -92,11 +93,19 @@ class ConfusionMatrixAnalyser(object):
 
         return metrics
 
-    def chance_to_be_random_process(self):
-        return 1 - (self.theta_metrics['MCC'] > 0).sum() / float(len(self.theta_metrics))
+    @staticmethod
+    def chance_to_be_in_interval(metric_samples, low=-np.inf, high=np.inf):
+        count = (metric_samples > low).astype(int) + (metric_samples < high).astype(int) == 2
+        return count.sum() / float(len(metric_samples))
 
-    def chance_to_appear_random_process(self):
-        return 1 - (self.pp_metrics['MCC'] > 0).sum() / float(len(self.pp_metrics))
+    def chance_to_be_random_process(self, rope=default_rope):
+        return self.chance_to_be_in_interval(self.theta_metrics['MCC'], low=-rope, high=rope)
+
+    def chance_to_be_harmful(self, rope=default_rope):
+        return self.chance_to_be_in_interval(self.theta_metrics['MCC'], high=-rope)
+
+    def chance_to_appear_random_process(self, rope=default_rope):
+        return self.chance_to_be_in_interval(self.pp_metrics['MCC'], low=-rope, high=rope)
 
     @staticmethod
     def calc_hpd(dataseries, alpha=0.05):
