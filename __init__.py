@@ -12,6 +12,7 @@ symbol_order = 'TP FN TN FP'.split()
 tp, fn, tn, fp = cm_elements = sympy.symbols(symbol_order)
 n = sum(cm_elements)
 
+distribution_samples = int(2e4)
 default_rope = 0.05
 
 # priors (naming conventions from Alvares2018)
@@ -29,6 +30,27 @@ dcm_priors = {'Bayes-Laplace': bayes_laplace_prior,
               'Jeffreys': jeffreys_prior,
               'RDA': rda_prior,
               'HA': ha_prior}
+
+
+class BetaBinomialDist(object):
+
+    def __init__(self, k, j, prior=[0, 0]):
+        self.k = k
+        self.j = j
+        self.n = k + j
+        self.prior = prior
+        self.theta_samples = self.sample_theta()
+        self.pp_samples = self.posterior_predict_metric()
+
+    def sample_theta(self):
+        alpha = self.k + self.prior[0]
+        beta = self.n - self.k + self.prior[1]
+        return pd.Series(np.random.beta(alpha, beta, size=distribution_samples))
+
+    def posterior_predict_metric(self):
+        predicted_k = np.array([np.random.binomial(self.n, x) for x in self.theta_samples.values])
+        predicted_j = self.n - predicted_k
+        return pd.DataFrame({'k': predicted_k, 'j': predicted_j})[['k', 'j']]
 
 
 class ConfusionMatrixAnalyser(object):
@@ -49,7 +71,6 @@ class ConfusionMatrixAnalyser(object):
 
         dirichlet_alpha = (self.prior + self.confusion_matrix)[self.confusion_matrix.index].values.astype(float)
 
-        distribution_samples = int(2e4)
         dirichlet_samples = np.random.dirichlet(dirichlet_alpha, size=distribution_samples)
 
         if not self.gelman_rubin_test_on_samples(dirichlet_samples):
