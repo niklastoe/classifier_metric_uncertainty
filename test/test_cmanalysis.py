@@ -12,7 +12,7 @@ class TestConfusionMatrixAnalyser(ut.TestCase):
         super(TestConfusionMatrixAnalyser, self).__init__(*args, **kwargs)
         input_cm = pd.Series([9, 1, 3, 2], index=['TP', 'FN', 'TN', 'FP'])
         # use improper prior to avoid bias / simplifies calculation
-        self.analyser = ConfusionMatrixAnalyser(input_cm, prior=haldane_prior)
+        self.analyser = ConfusionMatrixAnalyser(input_cm)
         self.N = self.analyser.confusion_matrix.values.sum()
 
         sel_n = 100000
@@ -25,7 +25,7 @@ class TestConfusionMatrixAnalyser(ut.TestCase):
         see https://en.wikipedia.org/wiki/Dirichlet_distribution
         and https://en.wikipedia.org/wiki/Dirichlet-multinomial_distribution"""
 
-        alpha = self.analyser.prior + self.analyser.confusion_matrix
+        alpha = self.analyser.confusion_matrix
         alpha_0 = float(sum(alpha))
         dirichlet_mean = alpha / alpha_0
         dcm_mean = self.N * dirichlet_mean

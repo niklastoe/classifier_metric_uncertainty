@@ -55,10 +55,27 @@ class BetaBinomialDist(object):
 
 class ConfusionMatrixAnalyser(object):
 
-    def __init__(self, confusion_matrix, prior=bayes_laplace_prior):
+    def __init__(self,
+                 confusion_matrix,
+                 priors={'PREVALENCE': [0, 0], 'TPR': [0, 0], 'TNR': [0, 0]},
+                 fixed_prevalence=False):
         self.confusion_matrix = confusion_matrix
-        self.prior = prior
+        self.priors = priors
+        self.n = float(self.confusion_matrix.values.sum())
         self.metrics = get_metric_dictionary()
+
+        if fixed_prevalence:
+            self.prevalence = self.confusion_matrix[['TP', 'FN']].sum() / self.n
+        else:
+            self.prevalence = BetaBinomialDist(self.confusion_matrix[['TP', 'FN']].sum(),
+                                               self.confusion_matrix[['TN', 'FP']].sum(),
+                                               prior=self.priors['PREVALENCE']).theta_samples
+        self.tpr = BetaBinomialDist(self.confusion_matrix['TP'],
+                                    self.confusion_matrix['FN'],
+                                    prior=self.priors['TPR']).theta_samples
+        self.tnr = BetaBinomialDist(self.confusion_matrix['TN'],
+                                    self.confusion_matrix['FP'],
+                                    prior=self.priors['TNR']).theta_samples
 
         self.theta_samples = self.sample_theta()
         self.pp_samples = self.posterior_predict_confusion_matrices()
@@ -69,26 +86,32 @@ class ConfusionMatrixAnalyser(object):
 
     def sample_theta(self):
 
-        dirichlet_alpha = (self.prior + self.confusion_matrix)[self.confusion_matrix.index].values.astype(float)
+        tp = self.prevalence * self.tpr
+        fn = self.prevalence * (1 - self.tpr)
+        tn = (1 - self.prevalence) * self.tnr
+        fp = (1 - self.prevalence) * (1 - self.tnr)
 
-        dirichlet_samples = np.random.dirichlet(dirichlet_alpha, size=distribution_samples)
+        theta_samples = pd.DataFrame({'TP': tp,
+                                      'FN': fn,
+                                      'TN': tn,
+                                      'FP': fp})
 
-        if not self.gelman_rubin_test_on_samples(dirichlet_samples):
+        if not self.gelman_rubin_test_on_samples(theta_samples.values):
             raise ValueError('Model did not converge according to Gelman-Rubin diagnostics!!')
 
-        return pd.DataFrame(dirichlet_samples, columns=self.confusion_matrix.index)
+        return theta_samples
 
     def posterior_predict_confusion_matrices(self, N=None):
 
         if N is None:
-            N = self.confusion_matrix.values.sum()
+            N = self.n
 
         posterior_prediction = np.array([np.random.multinomial(N, x) for x in self.theta_samples.values])
 
         if not self.gelman_rubin_test_on_samples(posterior_prediction):
             raise ValueError('Not enough posterior predictive samples according to Gelman-Rubin diagnostics!!')
 
-        return pd.DataFrame(posterior_prediction, columns=self.confusion_matrix.index)
+        return pd.DataFrame(posterior_prediction, columns=self.theta_samples.columns)
 
     @staticmethod
     def gelman_rubin_test_on_samples(samples):
