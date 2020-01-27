@@ -15,9 +15,11 @@ n = sum(cm_elements)
 distribution_samples = int(2e4)
 default_rope = 0.05
 
+
 # priors (naming conventions from Alvares2018)
 def objective_prior(val):
     return pd.Series([val] * len(symbol_order), index=symbol_order)
+
 
 bayes_laplace_prior = objective_prior(1)
 haldane_prior = objective_prior(0)
@@ -34,6 +36,7 @@ dcm_priors = {'Bayes-Laplace': bayes_laplace_prior,
 triplebeta_priors = {'Haldane': {'PREVALENCE': [0, 0], 'TPR': [0, 0], 'TNR': [0, 0]},
                      'Bayes-Laplace': {'PREVALENCE': [1, 1], 'TPR': [1, 1], 'TNR': [1, 1]},
                      'Jeffreys': {'PREVALENCE': [0.5, 0.5], 'TPR': [0.5, 0.5], 'TNR': [0.5, 0.5]}}
+
 
 class BetaBinomialDist(object):
 
@@ -92,27 +95,27 @@ class ConfusionMatrixAnalyser(object):
 
     def sample_theta(self):
 
-        tp = self.prevalence * self.tpr
-        fn = self.prevalence * (1 - self.tpr)
-        tn = (1 - self.prevalence) * self.tnr
-        fp = (1 - self.prevalence) * (1 - self.tnr)
+        tp_samples = self.prevalence * self.tpr
+        fn_samples = self.prevalence * (1 - self.tpr)
+        tn_samples = (1 - self.prevalence) * self.tnr
+        fp_samples = (1 - self.prevalence) * (1 - self.tnr)
 
-        theta_samples = pd.DataFrame({'TP': tp,
-                                      'FN': fn,
-                                      'TN': tn,
-                                      'FP': fp})
+        theta_samples = pd.DataFrame({'TP': tp_samples,
+                                      'FN': fn_samples,
+                                      'TN': tn_samples,
+                                      'FP': fp_samples})
 
         if not self.gelman_rubin_test_on_samples(theta_samples.values):
             raise ValueError('Model did not converge according to Gelman-Rubin diagnostics!!')
 
         return theta_samples
 
-    def posterior_predict_confusion_matrices(self, N=None):
+    def posterior_predict_confusion_matrices(self, pp_n=None):
 
-        if N is None:
-            N = self.n
+        if pp_n is None:
+            pp_n = self.n
 
-        posterior_prediction = np.array([np.random.multinomial(N, x) for x in self.theta_samples.values])
+        posterior_prediction = np.array([np.random.multinomial(pp_n, x) for x in self.theta_samples.values])
 
         if not self.gelman_rubin_test_on_samples(posterior_prediction):
             raise ValueError('Not enough posterior predictive samples according to Gelman-Rubin diagnostics!!')
@@ -258,9 +261,9 @@ def get_metric_dictionary():
 
     metrics['ACC'] = (tp + tn) / n
 
-    MCC_upper = (tp * tn - fp * fn)
-    MCC_lower = (tp + fp) * (tp + fn) * (tn + fp) * (tn + fn)
-    metrics['MCC'] = MCC_upper / sympy.sqrt(MCC_lower)
+    mcc_upper = (tp * tn - fp * fn)
+    mcc_lower = (tp + fp) * (tp + fn) * (tn + fp) * (tn + fn)
+    metrics['MCC'] = mcc_upper / sympy.sqrt(mcc_lower)
 
     metrics['F1'] = 2 * (ppv * tpr) / (ppv + tpr)
     metrics['BM'] = tpr + tnr - 1
@@ -294,7 +297,7 @@ class Prior(object):
     def visualize_prior(metric1, val1, metric2, val2, metric3, val3, weight):
         curr_prior = calculate_prior(metric1, val1, metric2, val2, metric3, val3, weight)
 
-        analyser = ConfusionMatrixAnalyser(curr_prior, prior=haldane_prior)
+        analyser = ConfusionMatrixAnalyser(curr_prior, priors=triplebeta_priors['Haldane'])
 
         print(curr_prior)
         fig, axes = plt.subplots(ncols=3, sharey=True)
@@ -303,7 +306,6 @@ class Prior(object):
             analyser.plot_metric(metric, show_sample_metric=False, sel_ax=axes[idx])
             if idx > 0:
                 axes[idx].set_ylabel('')
-
 
     def interactive_prior_visualization(self):
         metric_slider1 = ipywidgets.Dropdown(options=self.metrics.index, description='metric1', value='ACC')

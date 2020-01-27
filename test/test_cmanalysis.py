@@ -16,7 +16,7 @@ class TestConfusionMatrixAnalyser(ut.TestCase):
         self.N = self.analyser.confusion_matrix.values.sum()
 
         sel_n = 100000
-        inf_n_pp = self.analyser.posterior_predict_confusion_matrices(N=sel_n)
+        inf_n_pp = self.analyser.posterior_predict_confusion_matrices(pp_n=sel_n)
         inf_n_pp /= float(sel_n)
         self.inf_n_pp = inf_n_pp
 
