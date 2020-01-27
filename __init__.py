@@ -31,6 +31,9 @@ dcm_priors = {'Bayes-Laplace': bayes_laplace_prior,
               'RDA': rda_prior,
               'HA': ha_prior}
 
+triplebeta_priors = {'Haldane': {'PREVALENCE': [0, 0], 'TPR': [0, 0], 'TNR': [0, 0]},
+                     'Bayes-Laplace': {'PREVALENCE': [1, 1], 'TPR': [1, 1], 'TNR': [1, 1]},
+                     'Jeffreys': {'PREVALENCE': [0.5, 0.5], 'TPR': [0.5, 0.5], 'TNR': [0.5, 0.5]}}
 
 class BetaBinomialDist(object):
 
@@ -57,7 +60,7 @@ class ConfusionMatrixAnalyser(object):
 
     def __init__(self,
                  confusion_matrix,
-                 priors={'PREVALENCE': [0, 0], 'TPR': [0, 0], 'TNR': [0, 0]},
+                 priors=triplebeta_priors['Haldane'],
                  fixed_prevalence=False,
                  posterior_predictions=True):
         self.confusion_matrix = confusion_matrix
