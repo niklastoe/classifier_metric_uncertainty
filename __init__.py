@@ -229,7 +229,10 @@ class NewPrevalence(ConfusionMatrixAnalyser):
                  prevalence=BetaBinomialDist(0, 0,
                                              prior=triplebeta_priors['Bayes-Laplace']['PREVALENCE'])):
 
-        self.prevalence = prevalence.theta_samples
+        if isinstance(prevalence, BetaBinomialDist):
+            self.prevalence = prevalence.theta_samples
+        else:
+            self.prevalence = prevalence
         self.tpr = cma.tpr
         self.tnr = cma.tnr
 
