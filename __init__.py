@@ -216,6 +216,31 @@ class ConfusionMatrixAnalyser(object):
         return integral
 
 
+class NewPrevalence(ConfusionMatrixAnalyser):
+    """analyse the impact of prevalence on different metrics.
+    TPR and TNR are independent of prevalence and can be copied from instance of ConfusionMatrixAnalyser.
+    Use different prevalence distribution and recalculate all other metrics."""
+
+    def __init__(self,
+                 cma,
+                 prevalence=BetaBinomialDist(0, 0,
+                                             prior=triplebeta_priors['Bayes-Laplace']['PREVALENCE'])):
+
+        self.prevalence = prevalence.theta_samples
+        self.tpr = cma.tpr
+        self.tnr = cma.tnr
+
+        self.metrics = get_metric_dictionary()
+
+        # use metrics from original ConfusionMatrixAnalyser, otherwise there will be errors that they are missing
+        # keep in mind that the original confusion matrix has a different prevalence
+        self.confusion_matrix = cma.confusion_matrix
+        self.cm_metrics = self.calc_metrics(self.confusion_matrix.astype(float))
+
+        self.theta_samples = self.sample_theta()
+        self.theta_metrics = self.calc_metrics(self.theta_samples)
+
+
 def get_metric_dictionary():
     metrics = {}
 
