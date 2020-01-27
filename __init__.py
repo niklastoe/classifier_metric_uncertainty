@@ -58,11 +58,13 @@ class ConfusionMatrixAnalyser(object):
     def __init__(self,
                  confusion_matrix,
                  priors={'PREVALENCE': [0, 0], 'TPR': [0, 0], 'TNR': [0, 0]},
-                 fixed_prevalence=False):
+                 fixed_prevalence=False,
+                 posterior_predictions=True):
         self.confusion_matrix = confusion_matrix
         self.priors = priors
         self.n = float(self.confusion_matrix.values.sum())
         self.metrics = get_metric_dictionary()
+        self.cm_metrics = self.calc_metrics(self.confusion_matrix.astype(float))
 
         if fixed_prevalence:
             self.prevalence = self.confusion_matrix[['TP', 'FN']].sum() / self.n
@@ -78,11 +80,12 @@ class ConfusionMatrixAnalyser(object):
                                     prior=self.priors['TNR']).theta_samples
 
         self.theta_samples = self.sample_theta()
-        self.pp_samples = self.posterior_predict_confusion_matrices()
-
-        self.cm_metrics = self.calc_metrics(self.confusion_matrix.astype(float))
         self.theta_metrics = self.calc_metrics(self.theta_samples)
-        self.pp_metrics = self.calc_metrics(self.pp_samples)
+
+        # if we just want to look at the priors, we don't want posterior predictions because self.n=0
+        if posterior_predictions:
+            self.pp_samples = self.posterior_predict_confusion_matrices()
+            self.pp_metrics = self.calc_metrics(self.pp_samples)
 
     def sample_theta(self):
 
