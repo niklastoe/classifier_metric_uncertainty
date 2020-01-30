@@ -197,7 +197,7 @@ class ConfusionMatrixAnalyser(object):
             sel_ax.set_xlim(-0.05, 1.05)
 
     def interactive_metric_plot(self):
-        metric_slider = ipywidgets.Dropdown(options=self.metrics.index, description='metric', value='MCC')
+        metric_slider = ipywidgets.Dropdown(options=self.metrics.index, description='metric', value='BM')
 
         # interact will try to make sel_ax a slider, that's not possible: fix it
         ipywidgets.interact(self.plot_metric, metric=metric_slider, sel_ax=ipywidgets.fixed(None))
