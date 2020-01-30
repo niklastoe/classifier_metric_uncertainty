@@ -13,7 +13,7 @@ tp, fn, tn, fp = cm_elements = sympy.symbols(symbol_order)
 n = sum(cm_elements)
 
 distribution_samples = int(2e4)
-default_rope = 0.05
+default_rope = 0.0
 
 
 # priors (naming conventions from Alvares2018)
@@ -152,13 +152,20 @@ class ConfusionMatrixAnalyser(object):
         return count.sum() / float(len(metric_samples))
 
     def chance_to_be_random_process(self, rope=default_rope):
-        return self.chance_to_be_in_interval(self.theta_metrics['MCC'], low=-rope, high=rope)
+        if rope == 0.0:
+            raise ValueError('ROPE=0.0, this makes no sense!')
+        return self.chance_to_be_in_interval(self.theta_metrics['BM'], low=-rope, high=rope)
 
     def chance_to_be_harmful(self, rope=default_rope):
-        return self.chance_to_be_in_interval(self.theta_metrics['MCC'], high=-rope)
+        return self.chance_to_be_in_interval(self.theta_metrics['BM'], high=-rope)
+
+    def chance_to_be_informative(self, rope=default_rope):
+        return self.chance_to_be_in_interval(self.theta_metrics['BM'], low=rope)
 
     def chance_to_appear_random_process(self, rope=default_rope):
-        return self.chance_to_be_in_interval(self.pp_metrics['MCC'], low=-rope, high=rope)
+        if rope == 0.0:
+            raise ValueError('ROPE=0.0, this makes no sense!')
+        return self.chance_to_be_in_interval(self.pp_metrics['BM'], low=-rope, high=rope)
 
     @staticmethod
     def calc_hpd(dataseries, alpha=0.05):
