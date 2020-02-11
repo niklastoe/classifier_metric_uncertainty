@@ -46,7 +46,9 @@ class BetaBinomialDist(object):
         self.n = k + j
         self.prior = prior
         self.theta_samples = self.sample_theta()
+        self.theta_uncertainty = self.calc_uncertainty(self.theta_samples)
         self.pp_samples = self.posterior_predict_metric()
+        self.pp_uncertainty = self.calc_uncertainty_list(self.pp_samples)
 
     def sample_theta(self):
         alpha = self.k + self.prior[0]
@@ -58,8 +60,27 @@ class BetaBinomialDist(object):
         predicted_j = self.n - predicted_k
         return pd.DataFrame({'k': predicted_k, 'j': predicted_j})[['k', 'j']]
 
+    @staticmethod
+    def calc_hpd(dataseries, alpha=0.05):
+        return pm.stats.hpd(dataseries, alpha=alpha)
 
-class ConfusionMatrixAnalyser(object):
+    def calc_uncertainty(self, distribution_samples):
+        """calc 95% hpd length for a distribution which we consider a measure of uncertainty"""
+        return np.diff(self.calc_hpd(distribution_samples))[0]
+
+    def calc_uncertainty_list(self, table_of_distributions):
+        """return uncertainty for all columns in a table (as defined by HPD interval length)"""
+        metric_uncertainty = {}
+
+        for i in table_of_distributions:
+            metric_uncertainty[i] = self.calc_uncertainty(table_of_distributions[i])
+
+        metric_uncertainty = pd.Series(metric_uncertainty)
+
+        return metric_uncertainty
+
+
+class ConfusionMatrixAnalyser(BetaBinomialDist):
 
     def __init__(self,
                  confusion_matrix,
@@ -87,13 +108,13 @@ class ConfusionMatrixAnalyser(object):
 
         self.theta_samples = self.sample_theta()
         self.theta_metrics = self.calc_metrics(self.theta_samples)
-        self.theta_metric_uncertainty = self.calc_metric_uncertainty(self.theta_metrics)
+        self.theta_metric_uncertainty = self.calc_uncertainty_list(self.theta_metrics)
 
         # if we just want to look at the priors, we don't want posterior predictions because self.n=0
         if posterior_predictions:
             self.pp_samples = self.posterior_predict_confusion_matrices()
             self.pp_metrics = self.calc_metrics(self.pp_samples)
-            self.pp_metric_uncertainty = self.calc_metric_uncertainty(self.pp_metrics)
+            self.pp_metric_uncertainty = self.calc_uncertainty_list(self.pp_metrics)
 
     def sample_theta(self):
 
@@ -168,21 +189,6 @@ class ConfusionMatrixAnalyser(object):
         if rope == 0.0:
             raise ValueError('ROPE=0.0, this makes no sense!')
         return self.chance_to_be_in_interval(self.pp_metrics['BM'], low=-rope, high=rope)
-
-    @staticmethod
-    def calc_hpd(dataseries, alpha=0.05):
-        return pm.stats.hpd(dataseries, alpha=alpha)
-
-    def calc_metric_uncertainty(self, metric_table):
-        """return metric uncertainty for all metrics (as defined by HPD interval length)"""
-        metric_uncertainty = {}
-
-        for i in metric_table:
-            metric_uncertainty[i] = np.diff(self.calc_hpd(metric_table[i]))[0]
-
-        metric_uncertainty = pd.Series(metric_uncertainty)
-
-        return metric_uncertainty
 
     def plot_metric(self,
                     metric,
@@ -265,7 +271,7 @@ class NewPrevalence(ConfusionMatrixAnalyser):
 
         self.theta_samples = self.sample_theta()
         self.theta_metrics = self.calc_metrics(self.theta_samples)
-        self.theta_metric_uncertainty = self.calc_metric_uncertainty(self.theta_metrics)
+        self.theta_metric_uncertainty = self.calc_uncertainty_list(self.theta_metrics)
 
 
 def get_metric_dictionary():
