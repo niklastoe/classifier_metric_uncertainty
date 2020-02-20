@@ -200,11 +200,11 @@ class ConfusionMatrixAnalyser(BetaBinomialDist):
         sel_ax = sel_ax or plt.gca()
 
         if show_theta_metric:
-            sns.distplot(self.theta_metrics[metric], label=r'from $\theta$', kde=False, bins=100, ax=sel_ax)
+            sns.distplot(self.theta_metrics[metric], label='Bayes', kde=False, bins=100, ax=sel_ax)
         if show_pp_metric:
-            sns.distplot(self.pp_metrics[metric].dropna(), label='pp', kde=False, bins=100, ax=sel_ax)
+            sns.distplot(self.pp_metrics[metric].dropna(), label='empirical', kde=False, bins=100, ax=sel_ax)
         if show_sample_metric:
-            sel_ax.axvline(self.calc_metrics(self.confusion_matrix.astype(float))[metric], c='k', label='sample')
+            sel_ax.axvline(self.calc_metrics(self.confusion_matrix.astype(float))[metric], c='k', label='point estimate')
         sel_ax.set_ylabel('Probability density')
         sel_ax.set_yticks([])
         plt.legend(loc='upper left', bbox_to_anchor=(1., 1.))
