@@ -5,7 +5,9 @@
 Classifier Metric Uncertainty Due to Small Sample Sizes
 ======
 
-We present a Bayesian method to determine the metric uncertainty for (binary) classifiers. 
+Classifier metrics (such as accuracy, sensitivity, specificity, precision...) are highly uncertain if they are calculated from a small sample size. 
+Unfortunately, these point estimates are often considered to be exact.
+We present a Bayesian method to determine metric uncertainty. 
 The corresponding paper will be submitted soon and explains the underlying concepts.
 This repository contains the implementation in Python.
 
