@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
-
-from workflows.usability.jupyter_compatability import agnostic_tqdm
+import tqdm
 
 
 def classifier_outperformance(a_metric_samples, b_metric_samples, margin=0.):
@@ -23,7 +22,7 @@ def monte_carlo_rank_classifiers(cma_list, metric, mc_sampling=10000):
 
     positions = []
 
-    for idx, i in agnostic_tqdm(pd.DataFrame(samples).T.iterrows(), total=mc_sampling):
+    for idx, i in tqdm.tqdm_notebook(pd.DataFrame(samples).T.iterrows(), total=mc_sampling):
         curr_pos = pd.Series(np.arange(1, no_models + 1), index=i.sort_values()[::-1].index)
         positions.append(curr_pos)
 
