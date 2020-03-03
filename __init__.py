@@ -224,8 +224,8 @@ class ConfusionMatrixAnalyser(BetaBinomialDist):
         # interact will try to make sel_ax a slider, that's not possible: fix it
         ipywidgets.interact(self.plot_metric, metric=metric_slider, sel_ax=ipywidgets.fixed(None))
 
-    def plot_all_metrics(self, show_theta_metric=True, show_pp_metric=False, show_sample_metric=True):
-        fig, axes = plt.subplots(nrows=5, ncols=3, figsize=(10, 10))
+    def plot_all_metrics(self, show_theta_metric=True, show_pp_metric=False, show_sample_metric=True, figdims=(10,10)):
+        fig, axes = plt.subplots(nrows=5, ncols=3, figsize=figdims)
 
         for idx, metric in enumerate(self.metrics.index):
             curr_row = idx / 5
@@ -235,8 +235,10 @@ class ConfusionMatrixAnalyser(BetaBinomialDist):
                              show_theta_metric=show_theta_metric,
                              show_pp_metric=show_pp_metric,
                              show_sample_metric=show_sample_metric,
-                             sel_ax=curr_ax)
+                             sel_ax=curr_ax,
+                             show_legend=False)
             curr_ax.set_yticks([])
+            curr_ax.set_ylabel('')
 
         axes[2, 0].set_ylabel('Probability density')
         plt.subplots_adjust(hspace=0.5)
