@@ -195,7 +195,8 @@ class ConfusionMatrixAnalyser(BetaBinomialDist):
                     show_theta_metric=True,
                     show_pp_metric=False,
                     show_sample_metric=True,
-                    sel_ax=None):
+                    sel_ax=None,
+                    show_legend=True):
 
         sel_ax = sel_ax or plt.gca()
 
@@ -207,7 +208,9 @@ class ConfusionMatrixAnalyser(BetaBinomialDist):
             sel_ax.axvline(self.calc_metrics(self.confusion_matrix.astype(float))[metric], c='k', label='point estimate')
         sel_ax.set_ylabel('Probability density')
         sel_ax.set_yticks([])
-        plt.legend(loc='upper left', bbox_to_anchor=(1., 1.))
+        if show_legend:
+            # plt.legend(loc='upper left', bbox_to_anchor=(1., 1.))
+            plt.legend()
 
         # ensure that x- and y-lim are always appropriate
         if metric in ['MCC', 'MK', 'BM']:
