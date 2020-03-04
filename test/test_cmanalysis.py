@@ -2,7 +2,7 @@ import pandas as pd
 import unittest as ut
 import pymc3 as pm
 
-from workflows.bayesian_interpretation_confusion_matrix import ConfusionMatrixAnalyser, \
+from bayesian_inference_confusion_matrix import ConfusionMatrixAnalyser, \
     haldane_prior, bayes_laplace_prior
 
 

@@ -1,7 +1,7 @@
 import pandas as pd
 import unittest as ut
 
-from workflows.bayesian_interpretation_confusion_matrix import calculate_prior
+from bayesian_inference_confusion_matrix import calculate_prior
 
 
 class TestPriorDetermination(ut.TestCase):
