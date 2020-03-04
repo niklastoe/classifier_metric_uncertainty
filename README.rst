@@ -15,7 +15,7 @@ This repository contains the implementation in Python.
 
 Usage
 -----
-Please use the interactive, browser-based tool.
+Please use the `interactive, browser-based tool <https://mybinder.org/v2/gh/niklastoe/classifier_metric_uncertainty/master?urlpath=%2Fvoila%2Frender%2Finteractive_notebook.ipynb>`_.
 No programming skills or advanced statistical knowledge needed!
 If you want to integrate the method into your workflow, feel free to copy this repository.
 
