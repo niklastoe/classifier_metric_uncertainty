@@ -1,6 +1,8 @@
 .. image:: https://img.shields.io/badge/python-2.7|3.7-blue.svg
    :target: https://www.python.org/
    :alt: Python version
+.. image:: https://mybinder.org/badge_logo.svg
+ :target: https://mybinder.org/v2/gh/niklastoe/classifier_metric_uncertainty/master?urlpath=%2Fvoila%2Frender%2Finteractive_notebook.ipynb
 
 Classifier Metric Uncertainty Due to Small Sample Sizes
 ======
