@@ -22,6 +22,7 @@ If you want to integrate the method into your workflow, feel free to copy this r
 Reproducibility
 ---------------
 All notebooks to recreate the analysis presented in the paper can be found in ``paper/``.
+To ensure that all dependencies work as intended, type ``pip install -r requirements.txt``.
 
 Non-standard Packages & Tools
 --------
