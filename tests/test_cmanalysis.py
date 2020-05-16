@@ -1,9 +1,8 @@
-import pandas as pd
 import unittest as ut
-import pymc3 as pm
 
-from bayesian_inference_confusion_matrix import ConfusionMatrixAnalyser, \
-    haldane_prior, bayes_laplace_prior
+import pandas as pd
+import pymc3 as pm
+from bayesian_inference_confusion_matrix import ConfusionMatrixAnalyser, bayes_laplace_prior
 
 
 class TestConfusionMatrixAnalyser(ut.TestCase):
@@ -75,9 +74,9 @@ class TestConfusionMatrixAnalyser(ut.TestCase):
     def test_selected_metrics(self):
         """test if metrics are properly calculated, this is only done for a handful"""
 
-        self.assertEqual(self.analyser.cm_metrics['ACC'], 12./15.)
-        self.assertEqual(self.analyser.cm_metrics['PREVALENCE'], 10./15.)
-        self.assertEqual(self.analyser.cm_metrics['TPR'], 9./10.)
+        self.assertEqual(self.analyser.cm_metrics['ACC'], 12. / 15.)
+        self.assertEqual(self.analyser.cm_metrics['PREVALENCE'], 10. / 15.)
+        self.assertEqual(self.analyser.cm_metrics['TPR'], 9. / 10.)
 
     @ut.skip("pyMC test is disabled because it takes 15-90 seconds")
     def test_pymc_implementation(self):
