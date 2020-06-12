@@ -15,9 +15,14 @@ This repository contains the implementation in Python.
 
 Usage
 -----
-Please use the `interactive, browser-based tool <https://mybinder.org/v2/gh/niklastoe/classifier_metric_uncertainty/master?urlpath=%2Fvoila%2Frender%2Finteractive_notebook.ipynb>`_.
-No programming skills or advanced statistical knowledge needed!
-If you want to integrate the method into your workflow, feel free to copy this repository.
+The easiest way to calculate metric uncertainty is via our interactive, browser-based tool.
+The site may take a few minutes to load.
+It does not install any packages or execute any code on your machine, it needs to start the environment on the host.
+This causes the small delay.
+`Please follow this link to the browser-based tool. <https://mybinder.org/v2/gh/niklastoe/classifier_metric_uncertainty/master?urlpath=%2Fvoila%2Frender%2Finteractive_notebook.ipynb>`_
+
+If you want to calculate metric uncertainties on a regular basis or even integrate the method into your workflow, feel free to copy this repository.
+``tutorial.ipynb`` should give you an idea how to use the most important parts of the code.
 
 Reproducibility
 ---------------
@@ -34,6 +39,8 @@ Non-standard Packages & Tools
 
 Citation
 --------
+
+We will submit this manuscript soon and add a reference here.
 
 Contributing
 ------------
