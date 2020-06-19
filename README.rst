@@ -26,7 +26,7 @@ If you want to calculate metric uncertainties on a regular basis or even integra
 
 Reproducibility
 ---------------
-All notebooks to recreate the analysis presented in the paper can be found in ``paper/``.
+.. All notebooks to recreate the analysis presented in the paper can be found in ``paper/``.
 To ensure that all dependencies work as intended, type ``pip install -r requirements.txt``.
 
 Non-standard Packages & Tools
