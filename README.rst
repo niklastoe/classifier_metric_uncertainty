@@ -10,7 +10,7 @@ Classifier Metric Uncertainty Due to Small Sample Sizes
 Classifier metrics (such as accuracy, sensitivity, specificity, precision...) are highly uncertain if they are calculated from a small sample size. 
 Unfortunately, these point estimates are often considered to be exact.
 We present a Bayesian method to determine metric uncertainty. 
-The corresponding paper will be submitted soon and explains the underlying concepts.
+`Our paper. <https://arxiv.org/abs/2006.11105>`_ explains the underlying concepts and showcases that many published classifiers have surprisingly large metric uncertainties.
 This repository contains the implementation in Python.
 
 Usage
@@ -40,7 +40,17 @@ Non-standard Packages & Tools
 Citation
 --------
 
-We will submit this manuscript soon and add a reference here.
+We will submit this manuscript to a journal soon. Please cite the preprint in the meantime.
+
+.. code-block:: latex
+
+   @misc{toetsch2020classifier,
+    title={Classifier uncertainty: evidence, potential impact, and probabilistic treatment},
+    author={Niklas Tötsch and Daniel Hoffmann},
+    year={2020},
+    eprint={2006.11105},
+    archivePrefix={arXiv},
+    primaryClass={stat.ML}}
 
 Contributing
 ------------
