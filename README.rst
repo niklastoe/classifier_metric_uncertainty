@@ -44,7 +44,7 @@ Citation
 
    @article{toetsch2021classifier,
    title={Classifier uncertainty: evidence, potential impact, and probabilistic treatment},
-   author={Niklas Tötsch and Daniel Hoffmann},
+   author = {Tötsch, Niklas and Hoffmann, Daniel},
    journal={PeerJ Computer Science},
    volume={7},
    pages={e398},
